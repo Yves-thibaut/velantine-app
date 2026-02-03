@@ -1,24 +1,21 @@
-# Contexte = racine du projet (comme le backend). Préfixe du front Next.js.
-ARG SRC=valentine-front/valentine-web
-
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
-ARG SRC=valentine-front/valentine-web
+
 # Copy package files
-COPY ${SRC}/package*.json ./
+COPY package*.json ./
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
-ARG SRC=valentine-front/valentine-web
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY ${SRC}/ .
+COPY . .
 
-# Set environment variables (NEXT_PUBLIC_* au build pour l’URL de l’API)
+# Set environment variables (NEXT_PUBLIC_* au build pour l'URL de l'API)
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}

@@ -6,10 +6,8 @@ networks:
 services:
   valentine-api:
     build:
-      context: ../../..
-      dockerfile: valentine-api/Dockerfile
-      args:
-        APP_NAME: valentine-api
+      context: ../../../src/valentine-api
+      dockerfile: Dockerfile
     container_name: valentine-api
     restart: unless-stopped
     networks:
