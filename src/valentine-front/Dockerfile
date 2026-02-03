@@ -1,4 +1,4 @@
-# Contexte = RACINE du projet (lancer avec docker-compose.frontend.yml depuis /apps/velantine-app)
+# Contexte = racine du projet (context: ../../.. dans le compose)
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
