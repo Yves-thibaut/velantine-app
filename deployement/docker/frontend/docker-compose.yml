@@ -3,21 +3,18 @@ networks:
     name: proxy-net
     external: true
 
-
 services:
   valentine-web:
-    # Contexte = racine du projet (comme backend) pour que tout le code soit envoyé au build
     build:
-      context: ../../..
-      dockerfile: src/valentine-front/Dockerfile
+      context: ../../../src/valentine-front/valentine-web
+      dockerfile: ../../../src/valentine-front/Dockerfile
       args:
+        APP_NAME: valentine-web
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: valentine-web
     restart: unless-stopped
     networks:
       - proxy
-    expose:
-      - "3000"
     env_file:
       - .env
     environment:
@@ -25,6 +22,8 @@ services:
       - VIRTUAL_PORT=${VIRTUAL_PORT}
       - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    expose:
+      - "3000"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 30s
