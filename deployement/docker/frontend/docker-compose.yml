@@ -6,10 +6,10 @@ networks:
 
 services:
   valentine-web:
-    # Context = dossier valentine-web, Dockerfile dans valentine-front (tout sous src/)
+    # Même schéma que le backend : context = dossier src/valentine-front
     build:
-      context: ../../../src/valentine-front/valentine-web
-      dockerfile: ../../../src/valentine-front/Dockerfile
+      context: ../../../src/valentine-front
+      dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: valentine-web

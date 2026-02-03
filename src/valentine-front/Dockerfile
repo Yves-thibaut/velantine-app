@@ -1,19 +1,18 @@
+# Contexte = dossier valentine-front (contenant valentine-web/)
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-# Install dependencies
+# Copy package files (projet Next dans valentine-web/)
+COPY valentine-web/package*.json ./
 RUN yarn install --frozen-lockfile
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY valentine-web/ .
 
 # Set environment variables (NEXT_PUBLIC_* au build pour l'URL de l'API)
 ARG NEXT_PUBLIC_API_URL
