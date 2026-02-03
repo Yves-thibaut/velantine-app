@@ -7,8 +7,8 @@ networks:
 services:
   valentine-web:
     build:
-      context: ../../valentine-front/valentine-web
-      dockerfile: ../../valentine-front/Dockerfile
+      context: ../../../valentine-front/valentine-web
+      dockerfile: ../../../valentine-front/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: valentine-web
