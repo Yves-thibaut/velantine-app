@@ -6,7 +6,7 @@ networks:
 services:
   valentine-web:
     build:
-      context: ../../../src/valentine-front/valentine-web
+      context: ../../..
       dockerfile: ../../../src/valentine-front/Dockerfile
       args:
         APP_NAME: valentine-web

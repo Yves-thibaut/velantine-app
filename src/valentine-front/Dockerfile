@@ -1,19 +1,17 @@
+# Contexte = RACINE du projet (lancer avec docker-compose.frontend.yml depuis /apps/velantine-app)
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-# Install dependencies
+COPY src/valentine-front/valentine-web/package*.json ./
 RUN yarn install --frozen-lockfile
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY src/valentine-front/valentine-web/ .
 
 # Set environment variables
 ARG APP_NAME
