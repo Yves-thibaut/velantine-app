@@ -7,7 +7,7 @@ services:
   valentine-web:
     build:
       context: ../../..
-      dockerfile: ../../../src/valentine-front/Dockerfile
+      dockerfile: Dockerfile
       args:
         APP_NAME: valentine-web
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
