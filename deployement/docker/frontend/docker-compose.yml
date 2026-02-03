@@ -6,10 +6,10 @@ networks:
 
 services:
   valentine-web:
-    # Chemins relatifs au dossier parent (docker/) : ../../ = racine du projet
+    # Même principe que le backend : context = racine du projet, dockerfile relatif au context
     build:
-      context: ../../valentine-front/valentine-web
-      dockerfile: ../../valentine-front/Dockerfile
+      context: ../../..
+      dockerfile: valentine-front/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: valentine-web
