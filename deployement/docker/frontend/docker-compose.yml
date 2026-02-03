@@ -1,0 +1,31 @@
+networks:
+  proxy:
+    name: proxy-net
+    external: true
+
+services:
+  valentine-web:
+    build:
+      context: ../../../valentine-front/valentine-web
+      dockerfile: ../../../valentine-front/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: valentine-web
+    restart: unless-stopped
+    networks:
+      - proxy
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - VIRTUAL_PORT=${VIRTUAL_PORT}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

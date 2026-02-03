@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: valentine
+
+# Email qui reçoit la notif quand la Valentine choisit un rendez-vous
+valentine:
+  notification:
+    recipient-email: ${VALENTINE_RECIPIENT_EMAIL:tsagueyvesthibaut@gmail.com}
+    client-code: ${NOTIFICATION_CLIENT_CODE:MODERNWORKS}
+    template-code: ${NOTIFICATION_TEMPLATE_CODE:VALENTINE_CHOICE}
+
+# Service de notification (envoi email)
+notification:
+  http:
+    base-url: ${NOTIFICATION_BASE_URL:https://notification.faroty.com/notification-service/api/v1}
+    timeout: 5000
+
