@@ -5,6 +5,10 @@ spring:
   application:
     name: valentine
 
+# CORS : origines autorisées (frontend), séparées par des virgules
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://vl.modernworksdigital.com,http://localhost:3000,http://127.0.0.1:3000}
+
 # Email qui reçoit la notif quand la Valentine choisit un rendez-vous
 valentine:
   notification:
