@@ -10,37 +10,30 @@ import confetti from "canvas-confetti";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:40080";
 
-type Step = "intro" | "question" | "proposal" | "celebrating" | "choice" | "sending" | "confirmation";
+type Step = "intro" | "question" | "proposal" | "celebrating" | "choiceDay" | "choicePlace" | "sending" | "confirmation";
 
 const INTRO_NAME = "Manuela Fouedjoi";
 const INTRO_MESSAGE = "Ce message est pour toi. Une question spéciale t'attend... Quand tu es prête, clique sur Commencer.";
-const DATE_OPTIONS = [
-  {
-    id: 1,
-    place: "SonoLive Fest – Parcours Vita, Bonamoussadi",
-    date: "Vendredi 6 février à 20h",
-    description:
-      "Un moment fun et détendu 🎶. a l'occasion de l'ouverture de cette événement, j'ai pris deux billets pour nous. Ambiance festive, musique et bonne humeur au programme.",
-  },
-  {
-    id: 2,
-    place: "Restaurant",
-    date: "Samedi 7 février à 19h",
-    description:
-      "Un dîner calme et élégant 🍷. Je te réserverai une belle table dans un endroit agréable pour qu’on puisse bien discuter et profiter du moment.",
-  },
-  {
-    id: 3,
-    place: "À la maison",
-    date: "Dimanche 8 février à 18h",
-    description:
-      "Un moment cosy et chaleureux 🏡. Je cuisine moi-même, pour qu’on puisse manger tranquillement et discuter en toute sérénité.",
-  },
+// Étape 1 : choix du jour
+const DAY_OPTIONS = [
+  { id: "sat7", label: "Samedi 7 février à 19h" },
+  { id: "sun8", label: "Dimanche 8 février à 19h" },
+  { id: "fri13", label: "Vendredi 13 février à 19h" },
+  { id: "sat14", label: "Samedi 14 février à 19h" },
+  { id: "sun15", label: "Dimanche 15 février à 19h" },
+] as const;
+const CUSTOM_DAY_ID = "custom";
+
+// Étape 2 : choix du lieu (avec descriptions)
+const PLACE_OPTIONS = [
+  { id: "restaurant", place: "Restaurant", description: "Un dîner calme et élégant 🍷. Je te réserverai une belle table dans un endroit agréable pour qu'on puisse bien discuter et profiter du moment." },
+  { id: "maison", place: "À la maison", description: "Un moment cosy et chaleureux 🏡. Je cuisine moi-même, pour qu'on puisse manger tranquillement et discuter en toute sérénité." },
+  { id: "evenement", place: "Événement fun", description: "Un moment fun et détendu 🎶. Ambiance festive, musique et bonne humeur — on pourra choisir ensemble l'événement qui te fait envie." },
 ];
 
-const FLEE_RADIUS = 140;
-const FLEE_PUSH = 95;
-const FLEE_MAX = 280;
+const FLEE_RADIUS = 90;
+const FLEE_PUSH = 38;
+const FLEE_MAX = 120;
 const CONFETTI_DURATION_MS = 5_000;
 const CONFETTI_INTERVAL_MS = 450;
 
@@ -59,7 +52,9 @@ const BG_HEARTS = [
 export default function ValentinePage() {
   const [step, setStep] = useState<Step>("intro");
   const [curtainsVisible, setCurtainsVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<typeof DATE_OPTIONS[0] | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [customDayText, setCustomDayText] = useState("");
+  const [selectedPlace, setSelectedPlace] = useState<typeof PLACE_OPTIONS[0] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showChangeChoice, setShowChangeChoice] = useState(false);
   const noButtonWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -69,7 +64,8 @@ export default function ValentinePage() {
   const questionRef = useRef<HTMLDivElement>(null);
   const proposalRef = useRef<HTMLDivElement>(null);
   const celebratingRef = useRef<HTMLDivElement>(null);
-  const choiceRef = useRef<HTMLDivElement>(null);
+  const choiceDayRef = useRef<HTMLDivElement>(null);
+  const choicePlaceRef = useRef<HTMLDivElement>(null);
   const confirmationRef = useRef<HTMLDivElement>(null);
   const curtainLeftRef = useRef<HTMLDivElement>(null);
   const curtainRightRef = useRef<HTMLDivElement>(null);
@@ -107,13 +103,13 @@ export default function ValentinePage() {
         let targetY = currentY + uy * FLEE_PUSH;
         targetX = Math.max(-FLEE_MAX, Math.min(FLEE_MAX, targetX));
         targetY = Math.max(-FLEE_MAX, Math.min(FLEE_MAX, targetY));
-        gsap.to(wrapper, { x: targetX, y: targetY, duration: 0.22, ease: "power2.out" });
+        gsap.to(wrapper, { x: targetX, y: targetY, duration: 0.4, ease: "power2.out" });
       } else {
-        gsap.to(wrapper, { x: 0, y: 0, duration: 0.45, ease: "power2.out" });
+        gsap.to(wrapper, { x: 0, y: 0, duration: 0.6, ease: "power2.out" });
       }
     };
 
-    const onLeave = () => gsap.to(wrapper, { x: 0, y: 0, duration: 0.5, ease: "power2.out" });
+    const onLeave = () => gsap.to(wrapper, { x: 0, y: 0, duration: 0.7, ease: "power2.out" });
 
     window.addEventListener("mousemove", onMove, { passive: true });
     document.body.addEventListener("mouseleave", onLeave);
@@ -191,14 +187,16 @@ export default function ValentinePage() {
   }, [step]);
 
   useEffect(() => {
-    if (step !== "choice") return;
+    if (step !== "choiceDay" && step !== "choicePlace") return;
     const t = setTimeout(() => {
-      const el = choiceRef.current;
+      const el = step === "choiceDay" ? choiceDayRef.current : choicePlaceRef.current;
       if (!el) return;
       const cards = el.querySelectorAll("[data-choice-card]");
       const submit = el.querySelector("[data-submit]");
+      const next = el.querySelector("[data-next]");
       gsap.fromTo(cards, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: "back.out(1.1)" });
-      gsap.fromTo(submit, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.4, ease: "power2.out" });
+      if (submit) gsap.fromTo(submit, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.4, ease: "power2.out" });
+      if (next) gsap.fromTo(next, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.4, ease: "power2.out" });
     }, 50);
     return () => clearTimeout(t);
   }, [step]);
@@ -274,12 +272,33 @@ export default function ValentinePage() {
 
   const handleProposalOui = () => {
     setStep("celebrating");
-    setTimeout(() => setStep("choice"), 2800);
+    setTimeout(() => setStep("choiceDay"), 2800);
   };
 
   const goBack = () => {
     setStep("question");
-    setSelectedOption(null);
+    setSelectedDay(null);
+    setCustomDayText("");
+    setSelectedPlace(null);
+    setError(null);
+    setShowChangeChoice(false);
+  };
+
+  const goBackToChoiceDay = () => {
+    setStep("choiceDay");
+    setSelectedPlace(null);
+    setError(null);
+  };
+
+  const goBackFromChoiceDay = () => {
+    setStep("celebrating");
+  };
+
+  const changeChoiceFromConfirmation = () => {
+    setStep("choiceDay");
+    setSelectedDay(null);
+    setCustomDayText("");
+    setSelectedPlace(null);
     setError(null);
     setShowChangeChoice(false);
   };
@@ -289,7 +308,9 @@ export default function ValentinePage() {
   };
 
   const submitChoice = async () => {
-    if (!selectedOption) return;
+    if (!selectedPlace || !selectedDay) return;
+    const dateLabel = selectedDay === CUSTOM_DAY_ID ? customDayText.trim() : DAY_OPTIONS.find((d) => d.id === selectedDay)?.label ?? "";
+    if (!dateLabel) return;
     setError(null);
     setStep("sending");
     try {
@@ -297,9 +318,9 @@ export default function ValentinePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          chosenOptionId: selectedOption.id,
-          chosenPlace: selectedOption.place,
-          chosenDate: selectedOption.date,
+          chosenOptionId: 1,
+          chosenPlace: selectedPlace.place,
+          chosenDate: dateLabel,
         }),
       });
       if (!res.ok) {
@@ -309,7 +330,7 @@ export default function ValentinePage() {
       setStep("confirmation");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur réseau");
-      setStep("choice");
+      setStep("choicePlace");
     }
   };
 
@@ -435,7 +456,7 @@ export default function ValentinePage() {
                 data-proposal-text
                 className="font-display text-xl sm:text-2xl text-foreground leading-relaxed mb-10"
               >
-                Je propose qu’on fasse notre premier date pour mieux se connaître avant le 14 février. Qu’en penses-tu ?
+                Je propose qu’on fasse notre premier Date pour en discuter. Qu’en penses-tu ?
               </p>
               <div data-proposal-buttons className="flex flex-wrap items-center justify-center gap-4">
                 <motion.button
@@ -498,10 +519,109 @@ export default function ValentinePage() {
           </motion.div>
         )}
 
-        {step === "choice" && (
+        {step === "choiceDay" && (
           <motion.div
-            key="choice"
-            ref={choiceRef}
+            key="choiceDay"
+            ref={choiceDayRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="relative w-full max-w-2xl flex flex-col gap-6"
+          >
+            <button
+              type="button"
+              onClick={goBackFromChoiceDay}
+              className="flex items-center gap-2 text-foreground-muted/80 hover:text-foreground text-sm transition-colors self-start"
+            >
+              <ArrowLeft className="w-4 h-4" /> Retour
+            </button>
+            <div className="text-center mb-2">
+              <h2 className="font-display text-2xl sm:text-3xl font-semibold text-foreground">
+                Choisis le jour
+              </h2>
+              <p className="text-foreground-muted/80 text-sm mt-1">Ensuite tu choisiras le lieu</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {DAY_OPTIONS.map((opt) => (
+                <motion.button
+                  key={opt.id}
+                  data-choice-card
+                  type="button"
+                  onClick={() => { setSelectedDay(opt.id); setCustomDayText(""); }}
+                  className={clsx(
+                    "relative text-left p-4 rounded-2xl border-2 transition-all duration-300 flex items-center gap-3",
+                    selectedDay === opt.id
+                      ? "border-rose-500/60 bg-rose-500/15 shadow-lg shadow-rose-500/20"
+                      : "border-white/15 bg-white/5 hover:border-rose-500/30 hover:bg-white/10"
+                  )}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  {selectedDay === opt.id && (
+                    <span className="absolute top-3 right-3">
+                      <Check className="w-5 h-5 text-rose-400" />
+                    </span>
+                  )}
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/20 text-rose-400">
+                    <Calendar className="w-5 h-5" />
+                  </span>
+                  <span className="font-medium text-foreground">{opt.label}</span>
+                </motion.button>
+              ))}
+              <motion.button
+                data-choice-card
+                type="button"
+                onClick={() => { setSelectedDay(CUSTOM_DAY_ID); }}
+                className={clsx(
+                  "relative text-left p-4 rounded-2xl border-2 transition-all duration-300 flex items-center gap-3 sm:col-span-2",
+                  selectedDay === CUSTOM_DAY_ID
+                    ? "border-rose-500/60 bg-rose-500/15 shadow-lg shadow-rose-500/20"
+                    : "border-white/15 bg-white/5 hover:border-rose-500/30 hover:bg-white/10"
+                )}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                {selectedDay === CUSTOM_DAY_ID && (
+                  <span className="absolute top-3 right-3">
+                    <Check className="w-5 h-5 text-rose-400" />
+                  </span>
+                )}
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/20 text-rose-400">
+                  <Calendar className="w-5 h-5" />
+                </span>
+                <span className="font-medium text-foreground">Proposer mon jour</span>
+              </motion.button>
+            </div>
+            {selectedDay === CUSTOM_DAY_ID && (
+              <div className="mt-1">
+                <label className="block text-sm text-foreground-muted mb-2">Quel jour préfères-tu ?</label>
+                <input
+                  type="text"
+                  value={customDayText}
+                  onChange={(e) => setCustomDayText(e.target.value)}
+                  placeholder="Ex. Samedi 21 février, Dimanche 15h…"
+                  className="w-full px-4 py-3 rounded-xl border border-white/20 bg-white/5 text-foreground placeholder:text-foreground-muted/50 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+                />
+              </div>
+            )}
+            <motion.button
+              data-next
+              type="button"
+              onClick={() => setStep("choicePlace")}
+              disabled={!selectedDay || (selectedDay === CUSTOM_DAY_ID && !customDayText.trim())}
+              className="w-full py-4 rounded-2xl font-semibold text-white text-lg bg-gradient-to-r from-rose-500 to-pink-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 transition-all duration-300"
+              whileTap={{ scale: 0.98 }}
+            >
+              Continuer
+            </motion.button>
+          </motion.div>
+        )}
+
+        {step === "choicePlace" && (
+          <motion.div
+            key="choicePlace"
+            ref={choicePlaceRef}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -510,34 +630,36 @@ export default function ValentinePage() {
           >
             <button
               type="button"
-              onClick={goBack}
+              onClick={goBackToChoiceDay}
               className="flex items-center gap-2 text-foreground-muted/80 hover:text-foreground text-sm transition-colors self-start"
             >
               <ArrowLeft className="w-4 h-4" /> Retour
             </button>
             <div className="text-center mb-2">
               <h2 className="font-display text-2xl sm:text-3xl font-semibold text-foreground">
-                Choisis notre rendez-vous
+                Choisis le lieu
               </h2>
-              <p className="text-foreground-muted/80 text-sm mt-1">Un lieu, une date</p>
+              <p className="text-foreground-muted/80 text-sm mt-1">
+                {selectedDay === CUSTOM_DAY_ID ? customDayText.trim() || "Ton jour" : DAY_OPTIONS.find((d) => d.id === selectedDay)?.label} — où aimerais-tu qu’on se retrouve ?
+              </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {DATE_OPTIONS.map((opt) => (
+              {PLACE_OPTIONS.map((opt) => (
                 <motion.button
                   key={opt.id}
                   data-choice-card
                   type="button"
-                  onClick={() => setSelectedOption(opt)}
+                  onClick={() => setSelectedPlace(opt)}
                   className={clsx(
                     "relative text-left p-5 rounded-2xl border-2 transition-all duration-300 overflow-hidden flex-1 min-w-0",
-                    selectedOption?.id === opt.id
+                    selectedPlace?.id === opt.id
                       ? "border-rose-500/60 bg-rose-500/15 shadow-lg shadow-rose-500/20"
                       : "border-white/15 bg-white/5 hover:border-rose-500/30 hover:bg-white/10"
                   )}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.99 }}
                 >
-                  {selectedOption?.id === opt.id && (
+                  {selectedPlace?.id === opt.id && (
                     <span className="absolute top-3 right-3">
                       <Check className="w-5 h-5 text-rose-400" />
                     </span>
@@ -548,14 +670,9 @@ export default function ValentinePage() {
                     </span>
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground">{opt.place}</p>
-                      <p className="flex items-center gap-2 text-sm text-foreground-muted mt-1">
-                        <Calendar className="w-4 h-4 shrink-0 text-rose-400/80" /> {opt.date}
+                      <p className="text-sm text-foreground-muted/90 mt-2 leading-relaxed">
+                        {opt.description}
                       </p>
-                      {opt.description && (
-                        <p className="text-sm text-foreground-muted/90 mt-2 leading-relaxed">
-                          {opt.description}
-                        </p>
-                      )}
                     </div>
                   </div>
                 </motion.button>
@@ -566,7 +683,7 @@ export default function ValentinePage() {
               data-submit
               type="button"
               onClick={submitChoice}
-              disabled={!selectedOption}
+              disabled={!selectedPlace}
               className="w-full py-4 rounded-2xl font-semibold text-white text-lg bg-gradient-to-r from-rose-500 to-pink-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 transition-all duration-300"
               whileTap={{ scale: 0.98 }}
             >
@@ -636,7 +753,7 @@ export default function ValentinePage() {
                 >
                   <button
                     type="button"
-                    onClick={goBack}
+                    onClick={changeChoiceFromConfirmation}
                     className="text-foreground-muted/90 hover:text-foreground text-sm underline underline-offset-2 transition-colors"
                   >
                     Changer mon choix
