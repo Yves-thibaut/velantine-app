@@ -10,10 +10,10 @@ import confetti from "canvas-confetti";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:40080";
 
-type Step = "intro" | "question" | "proposal" | "celebrating" | "choiceDay" | "choicePlace" | "sending" | "confirmation";
+type Step = "intro" | "proposal" | "celebrating" | "choiceDay" | "choicePlace" | "sending" | "confirmation";
 
 const INTRO_NAME = "Manuela Fouedjio";
-const INTRO_MESSAGE = "Ce message est pour toi. Une question spéciale t'attend... Quand tu es prête, clique sur Commencer.";
+const INTRO_MESSAGE = "Ce message est pour toi. Quand tu es prête, clique sur Commencer.";
 // Étape 1 : choix du jour
 const DAY_OPTIONS = [
   { id: "sat7", label: "Samedi 7 février à 19h" },
@@ -57,11 +57,8 @@ export default function ValentinePage() {
   const [selectedPlace, setSelectedPlace] = useState<typeof PLACE_OPTIONS[0] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showChangeChoice, setShowChangeChoice] = useState(false);
-  const noButtonWrapperRef = useRef<HTMLDivElement | null>(null);
-  const [noButtonMounted, setNoButtonMounted] = useState(false);
   const proposalNoButtonWrapperRef = useRef<HTMLDivElement | null>(null);
   const [proposalNoButtonMounted, setProposalNoButtonMounted] = useState(false);
-  const questionRef = useRef<HTMLDivElement>(null);
   const proposalRef = useRef<HTMLDivElement>(null);
   const celebratingRef = useRef<HTMLDivElement>(null);
   const choiceDayRef = useRef<HTMLDivElement>(null);
@@ -70,21 +67,16 @@ export default function ValentinePage() {
   const curtainLeftRef = useRef<HTMLDivElement>(null);
   const curtainRightRef = useRef<HTMLDivElement>(null);
 
-  const setNoButtonWrapperRef = useCallback((el: HTMLDivElement | null) => {
-    noButtonWrapperRef.current = el;
-    setNoButtonMounted(!!el);
-  }, []);
-
   const setProposalNoButtonWrapperRef = useCallback((el: HTMLDivElement | null) => {
     proposalNoButtonWrapperRef.current = el;
     setProposalNoButtonMounted(!!el);
   }, []);
 
-  const fleeSteps = (step === "question" && noButtonMounted) || (step === "proposal" && proposalNoButtonMounted);
+  const fleeSteps = step === "proposal" && proposalNoButtonMounted;
 
   useEffect(() => {
     if (!fleeSteps) return;
-    const wrapper = step === "question" ? noButtonWrapperRef.current : proposalNoButtonWrapperRef.current;
+    const wrapper = proposalNoButtonWrapperRef.current;
     if (!wrapper) return;
 
     const onMove = (e: MouseEvent) => {
@@ -117,14 +109,13 @@ export default function ValentinePage() {
       window.removeEventListener("mousemove", onMove);
       document.body.removeEventListener("mouseleave", onLeave);
     };
-  }, [step, noButtonMounted, proposalNoButtonMounted, fleeSteps]);
+  }, [step, proposalNoButtonMounted, fleeSteps]);
 
   useEffect(() => {
-    if (step !== "question" && noButtonWrapperRef.current) gsap.set(noButtonWrapperRef.current, { x: 0, y: 0 });
     if (step !== "proposal" && proposalNoButtonWrapperRef.current) gsap.set(proposalNoButtonWrapperRef.current, { x: 0, y: 0 });
   }, [step]);
 
-  // Animation rideaux à l'ouverture (intro → question)
+  // Animation rideaux à l'ouverture (intro → proposition)
   useEffect(() => {
     if (!curtainsVisible || !curtainLeftRef.current || !curtainRightRef.current) return;
     const left = curtainLeftRef.current;
@@ -137,18 +128,6 @@ export default function ValentinePage() {
     tl.to(left, { xPercent: -100, duration: 2.5, ease: "power2.inOut" }, 0);
     tl.to(right, { xPercent: 100, duration: 2.5, ease: "power2.inOut" }, 0);
   }, [curtainsVisible]);
-
-  useEffect(() => {
-    if (step === "question" && questionRef.current && !curtainsVisible) {
-      const el = questionRef.current;
-      const title = el.querySelector("[data-title]");
-      const card = el.querySelector("[data-card]");
-      const btns = el.querySelector("[data-buttons]");
-      gsap.fromTo(card, { opacity: 0, scale: 0.92, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.8, ease: "back.out(1.2)" });
-      gsap.fromTo(title, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: "power2.out" });
-      gsap.fromTo(btns, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.45, ease: "power2.out" });
-    }
-  }, [step, curtainsVisible]);
 
   useEffect(() => {
     if (step === "proposal" && proposalRef.current) {
@@ -262,12 +241,8 @@ export default function ValentinePage() {
   }, [step]);
 
   const handleCommencer = () => {
-    setStep("question");
-    setCurtainsVisible(true);
-  };
-
-  const handleOui = () => {
     setStep("proposal");
+    setCurtainsVisible(true);
   };
 
   const handleProposalOui = () => {
@@ -276,7 +251,7 @@ export default function ValentinePage() {
   };
 
   const goBack = () => {
-    setStep("question");
+    setStep("intro");
     setSelectedDay(null);
     setCustomDayText("");
     setSelectedPlace(null);
@@ -380,56 +355,6 @@ export default function ValentinePage() {
           </motion.div>
         )}
 
-        {step === "question" && (
-          <motion.div
-            key="question"
-            ref={questionRef}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="relative flex flex-col items-center text-center max-w-lg w-full"
-          >
-            <div
-              data-card
-              className="relative rounded-3xl border border-white/10 bg-[var(--card-bg)] backdrop-blur-xl px-8 py-10 sm:px-12 sm:py-14 shadow-2xl shadow-black/30"
-            >
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-rose-500/5 to-transparent pointer-events-none" />
-              <h1
-                data-title
-                className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground tracking-tight mb-2"
-              >
-                Veux-tu être ma Valentine ?
-              </h1>
-              <p className="text-foreground-muted/80 text-sm sm:text-base mb-10">
-                Une question pour toi
-              </p>
-              <div data-buttons className="flex flex-wrap items-center justify-center gap-4">
-                <motion.button
-                  type="button"
-                  onClick={handleOui}
-                  className="relative px-10 py-4 rounded-2xl font-semibold text-white text-lg overflow-hidden bg-gradient-to-r from-rose-500 via-rose-400 to-pink-500 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 transition-shadow duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Heart className="w-5 h-5 fill-white" /> Oui
-                  </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-rose-400 to-pink-400 opacity-0 hover:opacity-100 transition-opacity" />
-                </motion.button>
-                <div ref={setNoButtonWrapperRef} className="inline-block will-change-transform">
-                  <button
-                    type="button"
-                    className="px-5 py-2.5 rounded-xl text-sm text-foreground-muted/70 border border-white/15 bg-white/5 hover:bg-white/10 transition-colors"
-                  >
-                    Non
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
         {step === "proposal" && (
           <motion.div
             key="proposal"
@@ -456,7 +381,7 @@ export default function ValentinePage() {
                 data-proposal-text
                 className="font-display text-xl sm:text-2xl text-foreground leading-relaxed mb-10"
               >
-                Je propose qu’on fasse notre premier Date pour en discuter. Qu’en penses-tu ?
+                Ça fait quelque temps que je t'ai remarquée et j'aimerais t'inviter à un date pour faire un peu plus connaissance. Qu'en dis-tu ?
               </p>
               <div data-proposal-buttons className="flex flex-wrap items-center justify-center gap-4">
                 <motion.button
