@@ -12,7 +12,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:40080";
 
 type Step = "intro" | "question" | "proposal" | "celebrating" | "choiceDay" | "choicePlace" | "sending" | "confirmation";
 
-const INTRO_NAME = "Manuela Fouedjoi";
+const INTRO_NAME = "Manuela Fouedjio";
 const INTRO_MESSAGE = "Ce message est pour toi. Une question spéciale t'attend... Quand tu es prête, clique sur Commencer.";
 // Étape 1 : choix du jour
 const DAY_OPTIONS = [
