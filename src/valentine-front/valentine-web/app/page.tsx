@@ -16,11 +16,12 @@ const INTRO_NAME = "Manuela Fouedjio";
 const INTRO_MESSAGE = "Ce message est pour toi. Quand tu es prête, clique sur Commencer.";
 // Étape 1 : choix du jour
 const DAY_OPTIONS = [
-  { id: "sat7", label: "Samedi 7 février à 19h" },
-  { id: "sun8", label: "Dimanche 8 février à 19h" },
-  { id: "fri13", label: "Vendredi 13 février à 19h" },
-  { id: "sat14", label: "Samedi 14 février à 19h" },
-  { id: "sun15", label: "Dimanche 15 février à 19h" },
+  { id: "fri13", label: "Vendredi 3 avril à 19h" },
+  { id: "sat7", label: "Samedi 4 avril à 19h" },
+  { id: "sun8", label: "Dimanche 5 avril à 19h" },
+  { id: "sat14", label: "vendredi 10 avril à 19h" },
+  { id: "sat14", label: "Samedi 11 avril à 19h" },
+  { id: "sun15", label: "Dimanche 12 avril à 19h" },
 ] as const;
 const CUSTOM_DAY_ID = "custom";
 
